@@ -1,0 +1,31 @@
+# Render Blueprint.
+#
+# Deploy: Render dashboard -> Blueprints -> New Blueprint Instance -> paste this
+# repository's GitHub URL into "Public Git Repository" -> Continue.
+# Render then asks you for the two "sync: false" values below (ANTHROPIC_API_KEY
+# and PROXY_KEY). You can change them later in the service's Environment tab.
+services:
+  - type: web
+    name: claude-cache-proxy
+    runtime: node
+    region: oregon
+    plan: free                       # "starter" ($7/mo) removes the 15-min sleep of the free tier
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      # Your Anthropic key (sk-ant-...). Stays on Render; JanitorAI never sees it.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # A password you make up. This is what you type into JanitorAI's "API key" field.
+      - key: PROXY_KEY
+        sync: false
+      # 5m (default, cheapest if you reply within 5 minutes) or 1h (for slow chats).
+      - key: CACHE_TTL
+        value: 5m
+      # One usage/savings line per message in the Logs tab. Keys are never logged.
+      - key: LOG_REQUESTS
+        value: "true"
+      - key: NODE_VERSION
+        value: "22"
